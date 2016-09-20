@@ -1,7 +1,7 @@
 #ifndef BIELAPLACE_H_INCLUDED
 #define BIELAPLACE_H_INCLUDED
 
-#define S 0.0
+#define tStart 0.0
 #define NBR_R 2 // Resolution in radial direction
 #define NBR_T 10 // Resolution in boundary parameterisation
 #define NBR_PANELS 2 // Number of GL-panels

@@ -8,10 +8,6 @@
 
 ../api/BIELaplace.h
 
-/System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/cblas.h
-Availability.h
--
-
 /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/clapack.h
 Availability.h
 -
@@ -27,8 +23,6 @@ math.h
 -
 BIELaplace.h
 /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/BIELaplace.h
-cblas.h
--
 clapack.h
 -
 
@@ -43,8 +37,6 @@ math.h
 -
 BIELaplace.h
 /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/BIELaplace.h
-cblas.h
--
 clapack.h
 -
 
@@ -61,7 +53,9 @@ math.h
 -
 BIELaplace.h
 /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/BIELaplace.h
-cblas.h
+gsl/gsl_test.h
+-
+gsl/gsl_splinalg.h
 -
 clapack.h
 -

@@ -3,9 +3,10 @@
 #include "Complex.h"
 #include <math.h>
 #include "BIELaplace.h"
+//#include <gsl/gsl_splinalg.h>
 
 //#include <Accelerate/Accelerate.h> // OSX-specific for LAPACK and BLAS.
-#include <cblas.h>
+//#include <cblas.h> //Conflict with gsl.
 #include <clapack.h>
 
 
@@ -45,7 +46,7 @@ int i;
 	//pzDrops OK!
 	//A OK!
 
-	
+
 	solveDensity(pzDrops, pzDropsp, pzDropspp, pwDrops, RHS);
 	
 	

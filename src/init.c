@@ -3,9 +3,10 @@
 #include "Complex.h"
 #include <math.h>
 #include "BIELaplace.h"
+//#include <gsl/gsl_splinalg.h>
 
 //#include <Accelerate/Accelerate.h> // OSX-specific for LAPACK and BLAS.
-#include <cblas.h>
+//#include <cblas.h>
 #include <clapack.h>
 
 
@@ -124,7 +125,7 @@ void create_grid(double complex pz[NBR_R][NBR_T]){
 		{
 			t = 2.0 * M_PI * j /(NBR_T - 1);
 			r = i * 0.999 / (NBR_R - 1);
-			pz[i][j] = r * (1.0 + 0.3 *  ccos(5.0 * (t + S))) * cexp(I * (t + S));
+			pz[i][j] = r * (1.0 + 0.3 *  ccos(5.0 * (t + tStart))) * cexp(I * (t + tStart));
 		}
 	}
 }
@@ -136,7 +137,7 @@ void tau(double complex * ptau, double * t, int N)
 	//double t;	
 	for(int i = 0; i<N; i++){
 		//t = 2.0 * M_PI * i /(N - 1);
-		ptau[i] = (1.0 + 0.3 *  ccos(5.0 * (t[i] + S))) * cexp(I * (t[i] + S));
+		ptau[i] = (1.0 + 0.3 *  ccos(5.0 * (t[i] + tStart))) * cexp(I * (t[i] + tStart));
 
 }
 }
@@ -149,7 +150,7 @@ void taup(double complex * ptaup, double * t, int N)
 	//double t;
 	for(int i = 0; i<N; i++){
 		//t = 2.0 * M_PI * i /(N - 1);
-		ptaup[i] = (-1.5 * csin(5.0 * (t[i] + S)) + I * (1.0 + 0.3 * ccos(5 * (t[i] + S)))) * cexp(I * (t[i] + S));
+		ptaup[i] = (-1.5 * csin(5.0 * (t[i] + tStart)) + I * (1.0 + 0.3 * ccos(5 * (t[i] + tStart)))) * cexp(I * (t[i] + tStart));
 	}	
 }
 
@@ -161,7 +162,7 @@ void taupp(double complex * ptaupp, double * t, int N)
 	//double t;
 	for(int i = 0; i<NBR_T; i++){
 		//t = 2.0 * M_PI * i /(NBR_T - 1);
-		ptaupp[i] = cexp(I * (t[i] + S)) * (-1.0 - 7.8 * ccos(5.0 * (t[i] + S)) - (3.0 * I) * csin(5.0 * (t[i] + S)));
+		ptaupp[i] = cexp(I * (t[i] + tStart)) * (-1.0 - 7.8 * ccos(5.0 * (t[i] + tStart)) - (3.0 * I) * csin(5.0 * (t[i] + tStart)));
 	}
 }
 

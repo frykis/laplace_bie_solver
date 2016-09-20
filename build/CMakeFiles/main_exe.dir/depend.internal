@@ -3,16 +3,13 @@
 
 CMakeFiles/main_exe.dir/src/init.c.o
  ../api/BIELaplace.h
- /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/cblas.h
  /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/clapack.h
  /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/init.c
 CMakeFiles/main_exe.dir/src/main.c.o
  ../api/BIELaplace.h
- /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/cblas.h
  /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/clapack.h
  /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/main.c
 CMakeFiles/main_exe.dir/src/solveDensity.c.o
  ../api/BIELaplace.h
- /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/cblas.h
  /System/Library/Frameworks/Accelerate.framework/Frameworks/vecLib.framework/Headers/clapack.h
  /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/solveDensity.c
