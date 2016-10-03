@@ -12,6 +12,20 @@
 Availability.h
 -
 
+/Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/computeSolution.c
+stdio.h
+-
+stdlib.h
+-
+Complex.h
+/Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/Complex.h
+math.h
+-
+BIELaplace.h
+/Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/BIELaplace.h
+clapack.h
+-
+
 /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/init.c
 stdio.h
 -
@@ -41,8 +55,6 @@ clapack.h
 -
 
 /Users/Fryklund/Projects/prog/Starfish-BIE-master/src/C/BIE_laplace/src/solveDensity.c
-stdio.h
--
 stdio.h
 -
 stdlib.h

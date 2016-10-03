@@ -123,6 +123,33 @@ main_exe/fast:
 	$(MAKE) -f CMakeFiles/main_exe.dir/build.make CMakeFiles/main_exe.dir/build
 .PHONY : main_exe/fast
 
+src/computeSolution.o: src/computeSolution.c.o
+
+.PHONY : src/computeSolution.o
+
+# target to build an object file
+src/computeSolution.c.o:
+	$(MAKE) -f CMakeFiles/main_exe.dir/build.make CMakeFiles/main_exe.dir/src/computeSolution.c.o
+.PHONY : src/computeSolution.c.o
+
+src/computeSolution.i: src/computeSolution.c.i
+
+.PHONY : src/computeSolution.i
+
+# target to preprocess a source file
+src/computeSolution.c.i:
+	$(MAKE) -f CMakeFiles/main_exe.dir/build.make CMakeFiles/main_exe.dir/src/computeSolution.c.i
+.PHONY : src/computeSolution.c.i
+
+src/computeSolution.s: src/computeSolution.c.s
+
+.PHONY : src/computeSolution.s
+
+# target to generate assembly for a file
+src/computeSolution.c.s:
+	$(MAKE) -f CMakeFiles/main_exe.dir/build.make CMakeFiles/main_exe.dir/src/computeSolution.c.s
+.PHONY : src/computeSolution.c.s
+
 src/init.o: src/init.c.o
 
 .PHONY : src/init.o
@@ -213,6 +240,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... main_exe"
+	@echo "... src/computeSolution.o"
+	@echo "... src/computeSolution.i"
+	@echo "... src/computeSolution.s"
 	@echo "... src/init.o"
 	@echo "... src/init.i"
 	@echo "... src/init.s"

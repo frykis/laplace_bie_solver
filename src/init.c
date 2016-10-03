@@ -3,10 +3,6 @@
 #include "Complex.h"
 #include <math.h>
 #include "BIELaplace.h"
-//#include <gsl/gsl_splinalg.h>
-
-//#include <Accelerate/Accelerate.h> // OSX-specific for LAPACK and BLAS.
-//#include <cblas.h>
 #include <clapack.h>
 
 
@@ -23,10 +19,10 @@ void gaussleg(double complex * pzDrops, double complex * pzDropsp, double comple
 void transposeMatrix(double *, double *,int,int);
 void printArrayD(double * A, int N, int M);
 void printArrayC(double complex * A, int N, int M);
+//double tStart =0.0;
 
 
-//´´
-int init_domain(double complex pz [NBR_R][NBR_T], double complex * ptau, double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * ppanels,double * ptpar,double * pwDrops)
+void init_domain(double complex pz [NBR_R][NBR_T], double complex * ptau, double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * ppanels,double * ptpar,double * pwDrops)
 {
 
 	int i;
@@ -43,8 +39,6 @@ int init_domain(double complex pz [NBR_R][NBR_T], double complex * ptau, double 
 	
 	gl16(pzDrops,pzDropsp,pzDropspp,pwDrops,ptpar,ppanels,ptau);
 
-
-	return 10;
 }
 
 
@@ -68,8 +62,6 @@ void gaussleg(double complex * pzDrops, double complex * pzDropsp, double comple
 	int i,j,INFO;
 	double beta[NBR_POINTS_PER_PANEL-1];
 	double diag[NBR_POINTS_PER_PANEL];
-	double nodes[NBR_POINTS_PER_PANEL];
-	double weights[NBR_POINTS_PER_PANEL];
 	double Z[NBR_POINTS_PER_PANEL*NBR_POINTS_PER_PANEL];
 	double WORK[2*NBR_POINTS_PER_PANEL-2];
 	// Parameters for dstev_. c4 gives that we obtain eigenvalues and eigenvectors. N is needed as the value must be passed by reference.
@@ -94,22 +86,15 @@ void gaussleg(double complex * pzDrops, double complex * pzDropsp, double comple
 //Obtain eigenvalues and eigenvectors for symmetric tridiagonal real matrix.
 dstev_(&dstevParameter,&N,diag,beta,Z,&N,WORK,&INFO);
 
-// More convinient to have the eigenvalues copied to a vector named eig.
-//cblas_dcopy(NBR_PANELS,diag,1,eig,1);
-
 
 
 for (int i = 0; i < NBR_POINTS_PER_PANEL; ++i)
 {
-	weights[i] = 2 * pow( Z[i*NBR_POINTS_PER_PANEL],2);
-	nodes[i] = (first * (1 - diag[i]) + last * (1 + diag[i])) * 0.5;
-	weights[i] = (last - first) * 0.5 * weights[i];
-
-	ptpar[i] = nodes[i];
-	pwDrops[i] = weights[i];
-	tau(&pzDrops[i],&nodes[i],1);
-	taup(&pzDropsp[i],&nodes[i],1);
-	taupp(&pzDropspp[i],&nodes[i],1);
+	ptpar[i] = (first * (1 - diag[i]) + last * (1 + diag[i])) * 0.5;
+	pwDrops[i] = (last - first) * 0.5 * 2 * pow( Z[i*NBR_POINTS_PER_PANEL],2);
+	tau(&pzDrops[i],&ptpar[i],1);
+	taup(&pzDropsp[i],&ptpar[i],1);
+	taupp(&pzDropspp[i],&ptpar[i],1);
 
 }
 
@@ -134,9 +119,7 @@ void create_grid(double complex pz[NBR_R][NBR_T]){
 void tau(double complex * ptau, double * t, int N)
 {
 	int i;
-	//double t;	
 	for(int i = 0; i<N; i++){
-		//t = 2.0 * M_PI * i /(N - 1);
 		ptau[i] = (1.0 + 0.3 *  ccos(5.0 * (t[i] + tStart))) * cexp(I * (t[i] + tStart));
 
 }
@@ -147,9 +130,7 @@ void tau(double complex * ptau, double * t, int N)
 void taup(double complex * ptaup, double * t, int N)
 {
 	int i;
-	//double t;
 	for(int i = 0; i<N; i++){
-		//t = 2.0 * M_PI * i /(N - 1);
 		ptaup[i] = (-1.5 * csin(5.0 * (t[i] + tStart)) + I * (1.0 + 0.3 * ccos(5 * (t[i] + tStart)))) * cexp(I * (t[i] + tStart));
 	}	
 }
@@ -159,9 +140,7 @@ void taup(double complex * ptaup, double * t, int N)
 void taupp(double complex * ptaupp, double * t, int N)
 {
 	int i;
-	//double t;
 	for(int i = 0; i<NBR_T; i++){
-		//t = 2.0 * M_PI * i /(NBR_T - 1);
 		ptaupp[i] = cexp(I * (t[i] + tStart)) * (-1.0 - 7.8 * ccos(5.0 * (t[i] + tStart)) - (3.0 * I) * csin(5.0 * (t[i] + tStart)));
 	}
 }

@@ -2,6 +2,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/main_exe.dir/src/init.c.o"
   "CMakeFiles/main_exe.dir/src/main.c.o"
   "CMakeFiles/main_exe.dir/src/solveDensity.c.o"
+  "CMakeFiles/main_exe.dir/src/computeSolution.c.o"
   "../api/main_exe.pdb"
   "../api/main_exe"
 )
