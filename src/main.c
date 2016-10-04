@@ -18,9 +18,7 @@ int main(int argc, char const *argv[])
 	umax = 0; // Used to obtain relative error.
 	pumax = &umax;
 
-	double complex zsrc1 = 1.5 + 1.5 * I;
-	double complex zsrc2 = -0.25 + 1.5 * I;
-	double complex zsrc3 = -0.5 - 1.5 * I;
+
    	
    	double complex * pz = malloc(NBR_DOMAIN_POINTS * sizeof(complex double));
 	double complex * ptau = malloc(NBR_T * sizeof(complex double));

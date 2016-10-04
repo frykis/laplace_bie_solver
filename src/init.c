@@ -80,9 +80,83 @@ void gaussleg(double complex * pzDrops, double complex * pzDropsp, double comple
 		tau(&pzDrops[i],&ptpar[i],1);
 		taup(&pzDropsp[i],&ptpar[i],1);
 		taupp(&pzDropspp[i],&ptpar[i],1);
-	}
+	} 
 }
 
+void glwt(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double first, double last,double complex * ptau){
+	int i,j;
+	int N = NBR_POINTS_PER_PANEL - 1;
+	int N1 = N + 1;
+	int N2 = N + 2;
+	double eps = 1e-14;
+	double errormax;
+	double xu[N1];
+	double y[N1];
+	double y0[N1];
+	double * L = malloc(N1 * N2 * sizeof(double));
+	double * Lp = malloc(N1 * sizeof(double));
+
+	for(int i = 0; i < N1; i++){
+		xu[i] = -1 + 2.0 * i /(N1 - 1);
+		Lp[i] = 0;
+		y[i] = 0;
+		for (int j = 0; j < N2; ++j)
+		{
+			L[i * N2 + j] = 0;
+		}
+	}
+
+
+	// Initial guess
+	for (int i = 0; i < NBR_POINTS_PER_PANEL; ++i)
+	{
+		y[i] = cos((2* i +1) * M_PI/( 2 * N + 2)) + (0.27 / N1) * sin(M_PI * xu[i] * N / N2);	
+		y0[i] = 2;
+	}
+
+	
+	
+	errormax = 2;
+
+	while(errormax > eps)
+	{
+		for (int i = 0; i < N1; ++i)
+		{
+			L[i*N2] = 1;
+			L[i*N2 + 1] = y[i];
+			
+			for (int j = 2; j < N2; ++j)
+			{
+				L[i*N2 + j ]=( (2*j-1)*y[i]*L[i * N2 + j - 1] - (j-1) * L[i * N2 + j-2] )/j;
+			}
+			Lp[i] = N2 * (L[i*N2 + N1 - 1] -y[i] * L[i * N2 + N1]) / (1 - pow(y[i],2));
+			y0[i] = y[i];
+			y[i] = y0[i] - L[i * N2 + N1] / Lp[i];
+		}
+
+		
+
+
+
+		errormax = 0;
+		for (i = 0; i < N1; i++) {
+			if (errormax < fabs(y0[i] - y[i]))
+				errormax = fabs(y0[i] - y[i]);
+		}
+	
+	} 
+
+	for (int i = 0; i < NBR_POINTS_PER_PANEL; ++i){
+		ptpar[i] = (first * (1.0 - y[NBR_POINTS_PER_PANEL - 1 - i]) + last * (1.0 + y[NBR_POINTS_PER_PANEL - 1 - i])) * 0.5;
+		pwDrops[i] = 1.12890625 * (last - first) / ((1 - pow(y[i],2)) * pow(Lp[i],2));
+		tau(&pzDrops[i],&ptpar[i],1);
+		taup(&pzDropsp[i],&ptpar[i],1);
+		taupp(&pzDropspp[i],&ptpar[i],1);
+	} 
+
+	free(L);
+	free(Lp);
+}
 
 void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double complex * ppanels, double complex * ptau)
 {
@@ -92,7 +166,11 @@ void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * 
 	for(i = 0; i < NBR_PANELS; ++i)
 	{
 		ppanels[i + 1] = (i + 1) * 2 * M_PI / NBR_PANELS;		
-		gaussleg(&pzDrops[i*NBR_POINTS_PER_PANEL],&pzDropsp[i*NBR_POINTS_PER_PANEL],&pzDropspp[i*NBR_POINTS_PER_PANEL],&pwDrops[i*NBR_POINTS_PER_PANEL],&ptpar[i*NBR_POINTS_PER_PANEL],ppanels[i],ppanels[i+1],ptau);
+		//gaussleg requires clapack
+		//gaussleg(&pzDrops[i*NBR_POINTS_PER_PANEL],&pzDropsp[i*NBR_POINTS_PER_PANEL],&pzDropspp[i*NBR_POINTS_PER_PANEL],&pwDrops[i*NBR_POINTS_PER_PANEL],&ptpar[i*NBR_POINTS_PER_PANEL],ppanels[i],ppanels[i+1],ptau);
+		
+		glwt(&pzDrops[i*NBR_POINTS_PER_PANEL],&pzDropsp[i*NBR_POINTS_PER_PANEL],&pzDropspp[i*NBR_POINTS_PER_PANEL],&pwDrops[i*NBR_POINTS_PER_PANEL],&ptpar[i*NBR_POINTS_PER_PANEL],ppanels[i],ppanels[i+1],ptau);
+		
 	}
 }
 
@@ -116,7 +194,7 @@ void init_domain(double complex * pz, double complex * ptau, double complex * pz
 	//Transform ppanels to complex points instead of angular paramterisation
 	for(int i = 0; i<(NBR_PANELS + 1); i++)
 		ppanels[i] = (1.0 + 0.3 *  ccos(5.0 * (ppanels[i] + tStart))) * cexp(I * (ppanels[i] + tStart));
-
+	//glwt();
 }
 
 

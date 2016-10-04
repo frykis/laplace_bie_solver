@@ -35,7 +35,7 @@ void solveDensity(double complex * pzDrops, double complex * pzDropsp, double co
 					gsl_spmatrix_set(A_gmres, i, j, (i==j)?(1.0 / 2.0 + (1/(2 * M_PI)) * pwDrops[i] * cimag(pzDropspp[i]/(2 * pzDropsp[i]))):((1 / (2* M_PI)) * pwDrops[j] * cimag(pzDropsp[j]/(pzDrops[j] - pzDrops[i]))));
 
 
-	const double epsrel = 1.0e-14;
+	const double epsrel = 1.0e-12;
 	const int compress = 0;
 
 	call_gsl_gmres(A_gmres, RHS, pmu, epsrel, compress);
