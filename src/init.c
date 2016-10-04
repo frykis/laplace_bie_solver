@@ -8,25 +8,24 @@
 
 /*
 Set up computational doimain. To change boundary, introduce new shape functions.
-ptau refers to the pointer corresponding to tau. taup and taupp refers to paramterization of boundary with first and second derivatine.
+ptau refers to the pointer corresponding to tau. taup and taupp refers to paramterization of boundary with first and second derivative.
 */
 void tau(double complex *, double * t,int N); 
 void taup(double complex *, double * t,int N);
 void taupp(double complex *, double * t,int N);
-void create_grid(double complex[NBR_R][NBR_T]);
-void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double * ppanels, double complex * ptau);
+void create_grid(double complex *);
+void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double complex * ppanels, double complex * ptau);
 void gaussleg(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double,double,double complex * ptau);
 void transposeMatrix(double *, double *,int,int);
 void printArrayD(double * A, int N, int M);
 void printArrayC(double complex * A, int N, int M);
-//double tStart =0.0;
 
-
-void init_domain(double complex pz [NBR_R][NBR_T], double complex * ptau, double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * ppanels,double * ptpar,double * pwDrops)
+void init_domain(double complex * pz, double complex * ptau, double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double complex * ppanels,double * ptpar,double * pwDrops)
 {
 
 	int i;
 	double t[NBR_T];	
+	double * pt; 
 	for (int i = 0; i < NBR_T; i++)
 			t[i] = 2.0 * M_PI * i /(NBR_T - 1);
 
@@ -39,10 +38,21 @@ void init_domain(double complex pz [NBR_R][NBR_T], double complex * ptau, double
 	
 	gl16(pzDrops,pzDropsp,pzDropspp,pwDrops,ptpar,ppanels,ptau);
 
+	//Transform ppanels to complex points instead of angular paramterisation
+/*for (i  = 0; i < (NBR_PANELS + 1); i++){
+	* pt = creal(ppanels[i]);
+	tau(&ppanels[i], pt, 1);
+}*/
+
+	for(int i = 0; i<(NBR_PANELS + 1); i++){
+		ppanels[i] = (1.0 + 0.3 *  ccos(5.0 * (ppanels[i] + tStart))) * cexp(I * (ppanels[i] + tStart));
+
+}
+
 }
 
 
-void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double * ppanels, double complex * ptau)
+void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double complex * ppanels, double complex * ptau)
 {
 	int i;
 
@@ -60,10 +70,10 @@ void gl16(double complex * pzDrops, double complex * pzDropsp, double complex * 
 void gaussleg(double complex * pzDrops, double complex * pzDropsp, double complex * pzDropspp, double * pwDrops, double * ptpar, double first, double last,double complex * ptau){
 	
 	int i,j,INFO;
-	double beta[NBR_POINTS_PER_PANEL-1];
+	double beta[NBR_POINTS_PER_PANEL - 1];
 	double diag[NBR_POINTS_PER_PANEL];
-	double Z[NBR_POINTS_PER_PANEL*NBR_POINTS_PER_PANEL];
-	double WORK[2*NBR_POINTS_PER_PANEL-2];
+	double Z[NBR_PANEL_POINTS];
+	double WORK[2 * NBR_POINTS_PER_PANEL - 2];
 	// Parameters for dstev_. c4 gives that we obtain eigenvalues and eigenvectors. N is needed as the value must be passed by reference.
 	char dstevParameter='V';
 	int N = NBR_POINTS_PER_PANEL;
@@ -78,7 +88,7 @@ void gaussleg(double complex * pzDrops, double complex * pzDropsp, double comple
 	{
 		diag[i] = 0.0;
 		for (int j = 0; j < NBR_POINTS_PER_PANEL; ++j)
-			Z[i*NBR_POINTS_PER_PANEL + j] = (i == j)?1.0:0.0;
+			Z[i * NBR_POINTS_PER_PANEL + j] = (i == j)?1.0:0.0;
 	}
 
 
@@ -87,21 +97,22 @@ void gaussleg(double complex * pzDrops, double complex * pzDropsp, double comple
 dstev_(&dstevParameter,&N,diag,beta,Z,&N,WORK,&INFO);
 
 
-
 for (int i = 0; i < NBR_POINTS_PER_PANEL; ++i)
 {
 	ptpar[i] = (first * (1 - diag[i]) + last * (1 + diag[i])) * 0.5;
-	pwDrops[i] = (last - first) * 0.5 * 2 * pow( Z[i*NBR_POINTS_PER_PANEL],2);
+	pwDrops[i] = (last - first) * 0.5 * 2 * pow( Z[i * NBR_POINTS_PER_PANEL], 2);
 	tau(&pzDrops[i],&ptpar[i],1);
 	taup(&pzDropsp[i],&ptpar[i],1);
 	taupp(&pzDropspp[i],&ptpar[i],1);
 
 }
 
+
+
 }
 
 
-void create_grid(double complex pz[NBR_R][NBR_T]){		
+void create_grid(double complex * pz){		
 	int i,j;
 	double t,r;
 
@@ -110,7 +121,7 @@ void create_grid(double complex pz[NBR_R][NBR_T]){
 		{
 			t = 2.0 * M_PI * j /(NBR_T - 1);
 			r = i * 0.999 / (NBR_R - 1);
-			pz[i][j] = r * (1.0 + 0.3 *  ccos(5.0 * (t + tStart))) * cexp(I * (t + tStart));
+			pz[i * NBR_T + j] = r * (1.0 + 0.3 *  ccos(5.0 * (t + tStart))) * cexp(I * (t + tStart));
 		}
 	}
 }

@@ -22,6 +22,7 @@ src/init.c
 src/main.c
 src/solveDensity.c
 src/computeSolution.c
+src/specialquadlapl.c
 )
 
 
