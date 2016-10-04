@@ -24,7 +24,7 @@ void solveDensity(double complex * pzDrops, double complex * pzDropsp, double co
 	int ldw = NBR_PANEL_POINTS;
 	int ldh = restrt + 1;
 	int iter = 1000;
-	double resid = 0.00000000001;
+	double resid = 1e-13;
 	int info;
 
 	gsl_spmatrix *A_gmres = gsl_spmatrix_alloc(NBR_PANEL_POINTS, NBR_PANEL_POINTS); /* triplet format */
@@ -53,7 +53,7 @@ void call_gsl_gmres(gsl_spmatrix *A_gmres, double * RHS,double * pmu, const doub
 	const size_t max_iter = 10;
   	size_t iter = 0;	
   	
- 	gsl_spmatrix *B;
+ 	  gsl_spmatrix *B;
   	gsl_vector *b = gsl_vector_alloc(NBR_PANEL_POINTS);        /* right hand side vector */
   	gsl_vector *u = gsl_vector_calloc(NBR_PANEL_POINTS);       /* solution vector, u0 = 0 */
   	gsl_splinalg_itersolve *w = gsl_splinalg_itersolve_alloc(T, NBR_PANEL_POINTS, 0);
@@ -63,9 +63,7 @@ void call_gsl_gmres(gsl_spmatrix *A_gmres, double * RHS,double * pmu, const doub
   	const double tol = 1.0e-14;
 
     for (int i = 0; i < NBR_PANEL_POINTS; ++i)
-	{
-		gsl_vector_set(b, i, RHS[i]);
-	}
+		  gsl_vector_set(b, i, RHS[i]);
 
   	if (compress)
     	B = gsl_spmatrix_compcol(A_gmres);
@@ -83,9 +81,7 @@ void call_gsl_gmres(gsl_spmatrix *A_gmres, double * RHS,double * pmu, const doub
   gsl_test(status, "%s poisson status s=%d N=%zu", desc, status, NBR_PANEL_POINTS);
 
     for (i = 0; i < NBR_PANEL_POINTS; ++i)
-    {
       pmu[i] = gsl_vector_get(u, i);
-    }
 
 
 

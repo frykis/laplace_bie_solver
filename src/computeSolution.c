@@ -10,8 +10,7 @@
 
 void computeSolution(double * pmu, double complex * pz, double * pwDrops, double complex * pzDrops, double complex * pzDropsp, double * pu)
 {
-	int i,j,k;
-	double t,r;
+	int i, j, k;
 
 	for(i = 0; i < NBR_R; ++i){
 		for (int j = 0; j < NBR_T; ++j){
@@ -22,6 +21,5 @@ void computeSolution(double * pmu, double complex * pz, double * pwDrops, double
 			pu[i * NBR_T +  j] = pu[i * NBR_T +  j] * 1.0 / (2.0 * M_PI);
 		}
 	}
-	
 }
 

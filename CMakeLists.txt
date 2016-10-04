@@ -18,11 +18,13 @@ include_directories(${PROJECT_SOURCE_DIR}/api)
 
 add_executable(
 main_exe
-src/init.c
 src/main.c
+src/init.c
+src/initFunction.c
 src/solveDensity.c
 src/computeSolution.c
 src/specialquadlapl.c
+src/computeError.c
 )
 
 

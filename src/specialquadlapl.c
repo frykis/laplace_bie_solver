@@ -9,9 +9,6 @@
 
 
 const int startsize = 32;
-void vandernewton(double complex *T, double complex *b, int N);
-void vandernewtonT(double *T, double *b, int N);
-void IPmultR(double complex* in, double complex* out);
 
 //16-point Gauss-Legendre weights
 static const double W16[16] = {0.0271524594117541,
@@ -102,92 +99,147 @@ static const double IP2[128] = {0.7138621264850029,
 0.2005703021781758,0.5406401699812300,0.3033999036738149};
 
 
+
+
+void vandernewton(double complex *T, double complex *b, int N) {
+    int k, j;
+
+    for (k = 1; k < N; k++) {
+        for (j = N - 1; j >= k; j--) {
+            b[j] -= T[k - 1] * b[j - 1];
+        } 
+    }
+
+    for (k = N - 1; k >= 1; k--) {
+        for (j = k; j < N; j++) {
+            b[j] = b[j] / (T[j] - T[j - k]);
+            b[j-1] -= b[j];
+        }
+    }
+
+}
+
+
+
+
+
+void vandernewtonT(double *T, double *b, int N) {
+    int k,j;
+
+    for (k = 0; k < N-1; k++) {
+        for (j = N - 1; j >= k + 1; j--) {
+            b[j] = (b[j] - b[j - 1]) / (T[j] - T[j - k - 1]);
+        }
+    }
+
+    for (k = N - 1; k >= 0; k--) {
+        for (j = k; j< N - 1; j++) {
+            b[j] -= T[k] * b[j + 1];
+        }
+    }
+
+}
+
+
+
+void IPmultR(double complex *in, double complex *out) {
+    int i, j, ptr;
+    double complex t1, t2;
+
+    for(i = 0; i < 16; i++) {
+        t1 = 0;
+        t2 = 0;
+        ptr = i;
+        for(j = 0; j < 8; j++) {
+            t1 += IP1[ptr] * (in[j] + in[15 - j]);
+            t2 += IP2[ptr] * (in[j] - in[15 - j]);
+            ptr += 16;
+        }
+           
+        out[i] = t1 + t2;
+        out[31-i] = t1 - t2;
+    }
+}
+
+
 void specialquadlapl(double *u_specq, double *u_standardq, double *mu, double complex *zDom, double complex *zDrops, double complex *zpDrops, double *wDrops, double complex *panels) {
 
 	int i, k, j;
+    int furthercheck;
+
+    double tmpT[16], tmpb[16], tW32[32], tW[32];
+    double oldsum, test, plen, newsum, sign;
 
 	double complex nzpan[16], tz[16], tzp[16];
 	double complex tz32[32], tzp32[32], nzpan32[32], p32[33], orig32[32];
-	double tmpT[16], tmpb[16], tW32[32], tW[32];
 	double complex zk, mid, len, nz, lg1, lg2, testsum, o32sum;
-	double oldsum, test, plen, newsum, sign;
-	int furthercheck;
-
 	double complex *tf32, *tf, new1, modif;
-	tf32 = malloc(32*sizeof(complex double));
-	tf = malloc(16*sizeof(complex double));
+
+	tf32 = malloc(32 * sizeof(complex double));
+	tf = malloc(16 * sizeof(complex double));
 
 /* Go through all points in domain and compute new solution if needed */
-	for (i = 0; i < NBR_DOMAIN_POINTS; i++ ) {
+	for (i = 0; i < NBR_DOMAIN_POINTS; i++ ){
 		u_specq[i] = u_standardq[i];
 		zk = zDom[i];
+		for (k = 0; k < NBR_PANELS; k++){
+			mid = (panels[k + 1] + panels[k]) / 2;
+			len = (panels[k + 1] - panels[k]);
 
-		for (k = 0; k < NBR_PANELS; k++) {
-
-			mid = (panels[k+1]+panels[k])/2;
-			len = (panels[k+1]-panels[k]);
-
-	//Is target point zk close enough to panel k to warrant further tests?
-            if (cabs(zk-mid) < cabs(len)) {
-
-            if (i==199) {
-                printf("i=199, k=%d \n",k);
-            }
-
-            	nz = 2*(zk-mid)/len;
+//Is target point zk close enough to panel k to warrant further tests?
+            if(cabs(zk-mid) < cabs(len)) {
+            	nz = 2 * (zk - mid) / len;
             	oldsum = 0;
             	testsum = 0;
-            	lg1 = clog(1-nz);
-            	lg2 = clog(-1-nz); 
+            	lg1 = clog(1 - nz);
+            	lg2 = clog(-1 - nz); 
 
-    //Save panel points and map s.t. real part on interval -1,1
-            	for (j=0; j<16; j++) {
-            		tz[j] = zDrops[k*16+j];
-            		nzpan[j] = 2*(tz[j]-mid)/len;
+//Save panel points and map s.t. real part on interval -1,1
+            	for (j = 0; j < 16; j++){
+            		tz[j] = zDrops[k * 16 + j];
+            		nzpan[j] = 2 * (tz[j] - mid) / len;
             	}
-	//Is the point between the panel and the real axis?
+//Is the point between the panel and the real axis?
             	if (creal(nz) > -1 && creal(nz) < 1) {
-
                    if(cimag(nz) > 0) {
-	       			//Above the real axis, check if nz is enclosed by the panel and the real axis.
+//Above the real axis, check if nz is enclosed by the panel and the real axis.
              		    furthercheck = 0;
-            		    for (j=0; j<16; j++) {
-            			    if (cimag(nzpan[j])>cimag(nz)) {
+            		    for (j = 0; j < 16; j++) {
+            			    if (cimag(nzpan[j]) > cimag(nz)) {
             				    furthercheck = 1;
             				    break;
             			    }
             		    }
             		    if (furthercheck) {
-            			    for (j=0; j<16; j++) {
+            			    for (j = 0; j < 16; j++) {
             				    tmpT[j] = creal(nzpan[j]);
             				    tmpb[j] = cimag(nzpan[j]);
             			    }
             			    vandernewtonT(tmpT,tmpb,16);
             			    test = tmpb[15];
-            			    for (j=14; j>=0; j--) {
-            				    test = test*creal(nz) + tmpb[j];
+            			    for (j = 14; j >= 0; j--) {
+            				    test = test * creal(nz) + tmpb[j];
             			    }
             			    if (test > cimag(nz)) {
-            				    // Yes, iti s, assuming a reasonably well refined mesh
-            				    //Correct the value of the integral
-            				    lg1 -= M_PI*I;
-            				    lg2 += M_PI*I;
+// Yes, iti s, assuming a reasonably well refined mesh
+//Correct the value of the integral
+            				    lg1 -= M_PI * I;
+            				    lg2 += M_PI * I;
             		  	    }
                    		}
                 	}
-                
             	
             	   if (cimag(nz) < 0 ) {
-                    //Below the real axis, check if nz is enclosed by the panel and the real axis
+//Below the real axis, check if nz is enclosed by the panel and the real axis
     				    furthercheck = 0;
-    				    for (j=0; j<16; j++) {
-    					   if (cimag(nzpan[j])<cimag(nz)) {
+    				    for (j = 0; j < 16; j++) {
+    					   if (cimag(nzpan[j]) < cimag(nz)) {
     						    furthercheck = 1;
     						    break;
     					    }
     				    }        		
     				    if (furthercheck) {
-    					   for (j=0; j<16; j++) {
+    					   for (j = 0; j < 16; j++) {
     						    tmpT[j] = creal(nzpan[j]);
     						    tmpb[j] = cimag(nzpan[j]);
     					    }
@@ -195,60 +247,60 @@ void specialquadlapl(double *u_specq, double *u_standardq, double *mu, double co
     					    vandernewtonT(tmpT,tmpb,16);
     					    test = tmpb[15];
     					
-    					    for (j=14; j>=0; j--) {
-    						    test = test*creal(nz) + tmpb[j];
+    					    for ( j =14; j >= 0; j--) {
+    						    test = test * creal(nz) + tmpb[j];
     					    }
     					
     					    if (test < cimag(nz)) {
-    						// Yes, it is, assuming a reasonably well refined mesh
-    						// Correct the value of the integral
-    						    lg1 += M_PI*I;
-    						    lg2 -= M_PI*I;
+// Yes, it is, assuming a reasonably well refined mesh
+// Correct the value of the integral
+    						    lg1 += M_PI * I;
+    						    lg2 -= M_PI * I;
     					    }
     					}
                     }
             	} 
 
-            	p32[0] = lg1-lg2; //Analytical expression for p_0
+            	p32[0] = lg1 - lg2; //Analytical expression for p_0
 
             	oldsum = 0;
             	testsum = 0;
-            	//Compute old contribution to u from panel with standard quadrature
- 	           for (j=0; j<16;j++) {
-    	        	tzp[j] = zpDrops[k*16+j];
-        	    	tf[j] = mu[k*16+j];
-            		tW[j] = wDrops[k*16+j];
-            		oldsum += tW[j]*tf[j]*cimag(tzp[j]/(tz[j]-zk))/(2*M_PI);
-            		testsum += tW[j]*tzp[j]/(tz[j]-zk);
+//Compute old contribution to u from panel with standard quadrature
+ 	           for (j = 0; j < 16; j++) {
+    	        	tzp[j] = zpDrops[k * 16 + j];
+        	    	tf[j] = mu[k * 16 + j];
+            		tW[j] = wDrops[k * 16 + j];
+            		oldsum += tW[j] * tf[j] * cimag(tzp[j] / (tz[j] - zk)) / (2 * M_PI);
+            		testsum += tW[j] * tzp[j] / (tz[j] - zk);
             	}
 
-    //Does standard quadrature suffice? In that case, we need not do anything.
-           		if (cabs(p32[0]-testsum) > 1e-13) {
-            	//If not, we first attempt 32-point quadrature.
-                //Interpolate boundary and density to 32 point Gauss-Legendre points.
+//Does standard quadrature suffice? In that case, we need not do anything.
+           		if (cabs(p32[0] - testsum) > 1e-13) {
+//If not, we first attempt 32-point quadrature.
+//Interpolate boundary and density to 32 point Gauss-Legendre points.
 
 					IPmultR(tf,tf32);
 					IPmultR(tz,tz32);
 					IPmultR(tzp,tzp32);
 
 
-					plen = tW[0]/W16[0];
+					plen = tW[0] / W16[0];
 					o32sum = 0;
-					for (j=0; j<32; j++) {
-						tW32[j] = W32[j]*plen;
-						orig32[j] = tW32[j]/(tz32[j]-zk);
-						o32sum += tzp32[j]*orig32[j];
+					for (j = 0; j < 32; j++) {
+						tW32[j] = W32[j] * plen;
+						orig32[j] = tW32[j] / (tz32[j] - zk);
+						o32sum += tzp32[j] * orig32[j];
 					}
 
-					if (cabs(o32sum-p32[0]) < 1e-13) {
+					if (cabs(o32sum - p32[0]) < 1e-13) {
 						//32 point quadrature suffices
 
 						newsum = 0;
-						for (j=0; j<32; j++) {
-							newsum += tW32[j]*tf32[j]*cimag(tzp32[j]/(tz32[j]-zk))*0.5/M_PI;
+						for (j = 0; j < 32; j++) {
+							newsum += tW32[j] * tf32[j] * cimag(tzp32[j] / (tz32[j] - zk)) * 0.5 / M_PI;
 						}
 
-						u_specq[i] += creal(newsum-oldsum);
+						u_specq[i] += creal(newsum - oldsum);
 
 					} else {
     	                //Straight up 32 point quadrature doesn't suffice.
@@ -259,8 +311,8 @@ void specialquadlapl(double *u_specq, double *u_standardq, double *mu, double co
         				sign = -1;
                     	//Compute the analytic values of the integral of
                     	//1/(tau-z) multiplied by monomials.
-                    	for (j=1; j<33; j++) {
-                    		p32[j] = nz*p32[j-1]+(1.0-sign)/j;
+                    	for (j = 1; j < 33; j++) {
+                    		p32[j] = nz * p32[j - 1] + (1.0 - sign)/j;
                     		sign = -sign;
                     	}
                     
@@ -271,10 +323,10 @@ void specialquadlapl(double *u_specq, double *u_standardq, double *mu, double co
         	            //integral and subtract the old, inaccurate value.
 
             	        new1 = 0;
-                	    for (j=0; j<32; j++) {
-                    		new1 += cimag(p32[j]*tf32[j])*0.5/M_PI;
+                	    for (j = 0; j < 32; j++) {
+                    		new1 += cimag(p32[j] * tf32[j]) * 0.5 / M_PI;
                     	}
-                    	modif = new1-oldsum;
+                    	modif = new1 - oldsum;
                     	u_specq[i] += creal(modif); 
 
 					}
@@ -282,86 +334,7 @@ void specialquadlapl(double *u_specq, double *u_standardq, double *mu, double co
             }
 		}
 	}
+    free(tf32);
+    free(tf);
 }
-
-
-
-void vandernewton(double complex *T, double complex *b, int N) {
-	int k, j;
-
-	for (k=1; k<N; k++) {
-		for (j=N-1; j>=k; j--) {
-			b[j] -= T[k-1]*b[j-1];
-		} 
-	}
-
-	for (k=N-1; k>=1; k--) {
-		for (j=k; j<N; j++) {
-			b[j] = b[j]/(T[j]-T[j-k]);
-			b[j-1] -= b[j];
-		}
-	}
-
-}
-
-
-
-
-
-void vandernewtonT(double *T, double *b, int N) {
-	int k,j;
-
-	for (k=0; k<N-1; k++) {
-		for (j=N-1; j>=k+1;j--) {
-			b[j] = (b[j]-b[j-1])/(T[j]-T[j-k-1]);
-		}
-	}
-
-	for (k=N-1; k>=0; k--) {
-		for (j=k; j<N-1; j++) {
-			b[j] -= T[k]*b[j+1];
-		}
-	}
-
-}
-
-
-
-void IPmultR(double complex *in, double complex *out) {
-	int i, j, ptr;
-	double complex t1, t2;
-
-    for(i = 0; i < 16; i++) {
-        t1 = 0;
-        t2 = 0;
-        ptr = i;
-        for(j = 0; j < 8; j++) {
-            t1 += IP1[ptr]*(in[j]+in[15-j]);
-            t2 += IP2[ptr]*(in[j]-in[15-j]);
-            ptr += 16;
-        }
-           
-        out[i] = t1+t2;
-        out[31-i] = t1-t2;
-    }
-}
-
-/*
-    void IPmultR(Complex* in,Complex* out) {
-        
-        for(int i = 0;i<16;i++) {
-            Complex t1 = 0;
-            Complex t2 = 0;
-            int ptr = i;
-            for(int j = 0;j<8;j++) {
-                t1 += IP1[ptr]*(in[j]+in[15-j]);
-                t2 += IP2[ptr]*(in[j]-in[15-j]);
-                ptr += 16;
-            }
-            out[i] = t1+t2;
-            out[31-i] = t1-t2;
-        }
-        
-    }
-    */
 
