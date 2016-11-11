@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Complex.h"
+#include <complex.h>
 #include <math.h>
 #include "BIELaplace.h"
 
@@ -17,5 +17,5 @@ void computeError(double * perrorvec, double * pu, double * pu_spec, double * pu
 		if (errormax < perrorvec[i])
 			errormax = perrorvec[i];
 	}
-	printf("Max error: %12.16f \n", errormax);
+	printf("Max error: %12.16e \n", errormax);
 }

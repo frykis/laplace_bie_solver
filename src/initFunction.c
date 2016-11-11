@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "Complex.h"
+#include <complex.h>
 #include <math.h>
 #include "BIELaplace.h"
 
@@ -14,7 +14,7 @@ void init_function(double * RHS, double * pu_ana, double complex * pzDrops, doub
 	double complex zsrc2 = -0.25 + 1.5 * I;
 	double complex zsrc3 = -0.5 - 1.5 * I;
 
-	for (int i = 0; i < NBR_PANEL_POINTS; ++i)
+	for (i = 0; i < NBR_PANEL_POINTS; ++i)
 		RHS[i] = creal( 1 / (pzDrops[i] - zsrc1) + 1 / (pzDrops[i] - zsrc2) + 1 / (pzDrops[i] - zsrc3));
 	
 	*pumax = 0; // Used to obtain relative error.
